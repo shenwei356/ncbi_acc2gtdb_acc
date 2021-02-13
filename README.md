@@ -78,7 +78,7 @@ Mapping NCBI genbank accession to GTDB accession
     # it may report "gzip: stdin: unexpected end of file",
     # may be due to my bad internet connection.
     #
-    # time: abount one day with a VPS at San Francisco, CA
+    # time: abount 10 hours with a VPS at San Francisco, CA
     threads=20
     time cat ncbi_ass2ftp.filter.tsv \
         | csvtk replace -H -t -f 2 -p "^ftp" -r "https" \
@@ -90,22 +90,35 @@ Mapping NCBI genbank accession to GTDB accession
         
     # -------------- mapping NCBI accession to GTDB accession -----------------
     
-    csvtk replace -H -t -f 2 -p '(.+)' -r '$1--{kv}' --key-miss-repl __ \
+    csvtk replace -H -t -f 2 -p '(.+)' -r '{kv}' --key-miss-repl __ \
         -k ncbi_ass2gtdb_acc.tsv ncbi_acc2ncbi_ass.tsv.gz \
-        | sed 's/--/\t/' \
         | gzip -c \
         > ncbi_acc2gtdb_acc.tsv.gz
 
         
 ## Result
 
-    # check
-    zcat ncbi_acc2gtdb_acc.tsv.gz | cut -f 3 | uniq | wc -l
-    194436
+stats
+
+    # records of gtdb
+    echo "records of GTDB: $(cat ncbi_ass2gtdb_acc.tsv | wc -l)"
+    # without genbank assebmly assembly_accession
+    echo "    these without assembly_accession: $(cat ncbi_ass2gtdb_acc.tsv | grep -c none)"    
+    # these in genbank
+    echo "    these available in current GenBank: $(cat ncbi_ass2ftp.filter.tsv | wc -l)"
+    # actually downloaded
+    echo "    actually downloaded: $(zcat ncbi_acc2gtdb_acc.tsv.gz | cut -f 2 | uniq | wc -l)"
     
+    records of GTDB: 194600
+        these without assembly_accession: 7
+        these available in current GenBank: 194436
+        actually downloaded: 194431
+
+preview
+
     zcat ncbi_acc2gtdb_acc.tsv.gz | head -n 5
-    LMVM01000001.1  GCA_002287175.1 RS_GCF_002287175.1
-    LMVM01000002.1  GCA_002287175.1 RS_GCF_002287175.1
-    LMVM01000003.1  GCA_002287175.1 RS_GCF_002287175.1
-    LMVM01000004.1  GCA_002287175.1 RS_GCF_002287175.1
-    LMVM01000005.1  GCA_002287175.1 RS_GCF_002287175.1
+    LMVM01000001.1  RS_GCF_002287175.1
+    LMVM01000002.1  RS_GCF_002287175.1
+    LMVM01000003.1  RS_GCF_002287175.1
+    LMVM01000004.1  RS_GCF_002287175.1
+    LMVM01000005.1  RS_GCF_002287175.1
